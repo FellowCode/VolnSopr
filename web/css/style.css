@@ -1,0 +1,54 @@
+.cfont {
+  font-family: 'Ubuntu Condensed', sans-serif; }
+
+.row {
+  position: relative;
+  margin-top: 10px;
+  float: left;
+  width: 100%; }
+
+.hide {
+  display: none; }
+
+.btn {
+  float: left;
+  display: block;
+  background-color: #096ac9;
+  color: white;
+  border: none;
+  width: 100px;
+  height: 35px;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 35px;
+  text-align: center;
+  margin-left: 10px; }
+  .btn:active {
+    background-color: #0c4d90; }
+  .btn:first-child {
+    margin-left: 0; }
+  .btn.left {
+    float: left; }
+  .btn.right {
+    float: right; }
+
+.cur-value {
+  float: left;
+  line-height: 35px;
+  margin-left: 30px; }
+
+input {
+  display: block;
+  float: left;
+  margin-left: 10px;
+  margin-top: 13px;
+  width: calc(100% - 230px);
+  font-size: 16px; }
+
+label[for=template] {
+  position: absolute;
+  top: -4px;
+  left: 223px;
+  font-size: 15px; }
+
+/*# sourceMappingURL=style.css.map */

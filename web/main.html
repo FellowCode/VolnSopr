@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Волновое сопротивление</title>
+    <link href="css/font.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <script type="text/javascript" src="eel.js"></script>
+    <script type="text/javascript" src="js/jquery-3.5.1.min.js"></script>
+    <script type="text/javascript" src="js/chart.min.js"></script>
+    <script>
+        var ctx
+        var myChart
+        var $state_btn
+        var $cur_value
+        $(document).ready(function () {
+            $state_btn = $('#state-btn')
+            $cur_value = $('#cur-value')
+            ctx = document.getElementById('myChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: "Нагрузка",
+                        data: [],
+                        fill: false,
+                        borderColor: '#096ac9',
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 80,
+                            fontColor: 'black'
+                        }
+                    }
+                }
+            });
+        })
+
+        eel.expose(addData)
+
+        var state = 'stop'
+
+        function addData(label, data) {
+            myChart.data.labels.push(label);
+            myChart.data.datasets[0].data.push(data);
+            myChart.update();
+            $cur_value.text(data)
+        }
+        function clickStartStop() {
+            if (state === 'stop') {
+                eel.start()
+                state = 'start'
+                $state_btn.text('Стоп')
+                $('#chart-name-row').addClass('hide')
+            } else {
+                eel.stop()
+                state = 'stop'
+                $state_btn.text('Старт')
+            }
+        }
+        eel.expose(cl)
+        function cl() {
+            myChart.data.labels = []
+            myChart.data.datasets[0].data = []
+            myChart.update();
+            $cur_value.text('None')
+            eel.clear()
+            $('#chart-name-row').addClass('hide')
+        }
+        eel.expose(chart_opened)
+        function chart_opened(name) {
+            $('#chart-name-row').removeClass('hide')
+            $('#chart-name').text(name)
+        }
+        function save_chart() {
+            var template = $('#template').val()
+            eel.save_chart(template)
+            if (myChart.data.labels.length === 0){
+                alert("График пуст")
+            }
+        }
+        eel.expose(set_chart_template)
+        function set_chart_template(template) {
+            $('#template').val(template)
+        }
+    </script>
+</head>
+<body style="min-width: 400px">
+<canvas id="myChart" style="width: 100%; height: 200px"></canvas>
+<div id="chart-name-row" class="row hide cfont">
+    <span>График: </span><span id="chart-name"></span>
+</div>
+<div class="row">
+    <a id="state-btn" class="btn left cfont" onclick="clickStartStop()">
+        Старт
+    </a>
+    <div class="cur-value cfont">
+        <span>Текущее значение:</span>
+        <span id="cur-value">None</span>
+    </div>
+    <a id="reset-btn" class="btn right cfont" onclick="cl()">
+        Очистить
+    </a>
+</div>
+<div class="row">
+    <a id="save-btn" class="btn left cfont" onclick="save_chart()">Сохранить</a>
+    <a id="open-btn" class="btn left cfont" onclick="eel.open_chart()">Открыть</a>
+    <label for="template" class="cfont">Шаблон названия</label>
+    <input id="template" type="text" class="">
+</div>
+</body>
+</html>
