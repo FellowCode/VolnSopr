@@ -1,2 +1,4 @@
 eel
 wxPython
+pywin32
+pyautogui

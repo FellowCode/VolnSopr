@@ -5,6 +5,7 @@ import sys
 import os
 import pprint
 from datetime import datetime
+import pyautogui
 
 state = 'stop'
 values = []
@@ -37,7 +38,6 @@ def add_zero(val):
 
 @eel.expose
 def save_chart(template):
-    print(template)
     if (day := datetime.now().day) < 10:
         day = add_zero(day)
     if (month := datetime.now().month) < 10:
@@ -105,12 +105,19 @@ def load_settings():
 
 
 if __name__ == '__main__':
+
+
+
     load_settings()
 
     app = wx.App(None)
     eel.init('web')
 
-    eel.start('main.html', block=False)
+    try:
+        eel.start('main.html', block=False)
+    except:
+        pyautogui.alert("Для работы приложения необходим браузер Chrome", "Ошибка")
+        sys.exit()
 
     eel.set_chart_template(settings.get('chart_name_temp', ''))
 
