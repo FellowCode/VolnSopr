@@ -105,16 +105,13 @@ def load_settings():
 
 
 if __name__ == '__main__':
-
-
-
     load_settings()
 
     app = wx.App(None)
     eel.init('web')
 
     try:
-        eel.start('main.html', block=False)
+        eel.start('main.html', mode='chrome', block=False)
     except:
         pyautogui.alert("Для работы приложения необходим браузер Chrome", "Ошибка")
         sys.exit()
