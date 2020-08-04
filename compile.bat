@@ -1,0 +1,1 @@
+python -m eel main.py web --noconsole --icon=icon.ico

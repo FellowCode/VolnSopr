@@ -2,3 +2,4 @@ eel
 wxPython
 pywin32
 pyautogui
+requests

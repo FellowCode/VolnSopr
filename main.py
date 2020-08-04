@@ -6,6 +6,7 @@ import os
 import pprint
 from datetime import datetime
 import pyautogui
+import requests
 
 state = 'stop'
 values = []
@@ -14,6 +15,9 @@ settings = {}
 
 APPDATA_PATH = os.getenv('APPDATA') + '\\VolnovoeSoprotivlenie\\'
 SETTINGS_PATH = APPDATA_PATH + 'settings.vsst'
+SENSOR_IP = "192.168.43.50"
+
+start_time = 0
 
 @eel.expose
 def start():
@@ -118,12 +122,15 @@ if __name__ == '__main__':
 
     eel.set_chart_template(settings.get('chart_name_temp', ''))
 
-    i=0
     while True:
         if state == 'start':
-            values.append((f'{i}s', random.randrange(0, 9)))
+            r = requests.get('http://'+SENSOR_IP+'/get-load/')
+            t, m = r.text.split(':')
+            if len(values) == 0:
+                start_time = int(t)
+            time_s = round((int(t)-start_time)/1000, 2)
+            values.append((f'{time_s}s', float(m)/1000))
             eel.addData(values[-1][0], values[-1][1])
-            i += 1
         eel.sleep(0.1)
 
 """ assoc .vlsp=VolnSopr
