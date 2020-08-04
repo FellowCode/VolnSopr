@@ -89,6 +89,10 @@
         function set_chart_template(template) {
             $('#template').val(template)
         }
+        eel.expose(error)
+        function error(msg){
+            $cur_value.text(msg)
+        }
     </script>
 </head>
 <body style="min-width: 400px">

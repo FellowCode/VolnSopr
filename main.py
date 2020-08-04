@@ -124,13 +124,16 @@ if __name__ == '__main__':
 
     while True:
         if state == 'start':
-            r = requests.get('http://'+SENSOR_IP+'/get-load/')
-            t, m = r.text.split(':')
-            if len(values) == 0:
-                start_time = int(t)
-            time_s = round((int(t)-start_time)/1000, 2)
-            values.append((f'{time_s}s', float(m)/1000))
-            eel.addData(values[-1][0], values[-1][1])
+            try:
+                r = requests.get('http://'+SENSOR_IP+'/get-load/', timeout=0.5)
+                t, m = r.text.split(':')
+                if len(values) == 0:
+                    start_time = int(t)
+                time_s = round((int(t)-start_time)/1000, 2)
+                values.append((f'{time_s}s', float(m)/1000))
+                eel.addData(values[-1][0], values[-1][1])
+            except requests.exceptions.ConnectTimeout:
+                eel.error('Нет ответа')
         eel.sleep(0.1)
 
 """ assoc .vlsp=VolnSopr
