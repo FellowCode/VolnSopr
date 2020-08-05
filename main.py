@@ -18,6 +18,7 @@ SETTINGS_PATH = APPDATA_PATH + 'settings.vsst'
 SENSOR_IP = "192.168.43.50"
 
 start_time = 0
+m_offset = 0
 
 @eel.expose
 def start():
@@ -109,10 +110,18 @@ def load_settings():
 
 @eel.expose
 def set_multiply(multiply):
-    global load_multiply
+    global settings
     try:
         settings['load_multiply'] = float(multiply)
-        print(multiply)
+        save_settings()
+    except:
+        pass
+
+@eel.expose
+def start_from_zero(value):
+    global settings
+    try:
+        settings['start_from_zero'] = value
         save_settings()
     except:
         pass
@@ -132,18 +141,23 @@ if __name__ == '__main__':
 
     eel.set_chart_template(settings.get('chart_name_temp', ''))
     eel.set_multiply(settings.get('load_multiply', 1))
+    eel.set_start_zero(settings.get('start_from_zero', False))
 
     while True:
         if state == 'start':
             try:
                 r = requests.get('http://'+SENSOR_IP+'/get-load/', timeout=0.5)
                 t, m = r.text.split(':')
+                mult = settings.get('load_multiply', 1)
+                m = float(m)*mult/1000
                 if len(values) == 0:
                     start_time = int(t)
-                m = float(m)
-                mult = settings.get('load_multiply', 1)
+                    if settings.get('start_from_zero', False):
+                        m_offset = m
+                    else:
+                        m_offset = 0
                 time_s = round((int(t)-start_time)/1000, 2)
-                values.append((f'{time_s}s', float(m)*mult/1000))
+                values.append((f'{time_s}s', m-m_offset))
                 eel.addData(values[-1][0], values[-1][1])
             except:
                 eel.error('Нет ответа')

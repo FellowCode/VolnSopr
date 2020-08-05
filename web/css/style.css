@@ -48,6 +48,8 @@ input {
   input#multiply {
     margin-left: 75px;
     width: 50px; }
+  input#start_zero {
+    margin-left: 20px; }
 
 label[for=template] {
   position: absolute;

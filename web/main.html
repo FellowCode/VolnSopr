@@ -20,6 +20,9 @@
             $('#multiply').change(function () {
                 eel.set_multiply($(this).val())
             })
+            $('#start_zero').change(function () {
+                eel.start_from_zero(this.checked)
+            })
             ctx = document.getElementById('myChart').getContext('2d');
             myChart = new Chart(ctx, {
                 type: 'line',
@@ -120,6 +123,10 @@
         function set_multiply(mult) {
             $('#multiply').val(mult)
         }
+        eel.expose(set_start_zero)
+        function set_start_zero(value){
+            $('#start_zero').prop('checked', value)
+        }
     </script>
 </head>
 <body style="min-width: 400px">
@@ -148,6 +155,8 @@
 <div class="row">
     <label for="multiply" class="cfont">Множитель</label>
     <input id="multiply" type="text">
+    <label for="start_zero" class="cfont">Обнулять старт</label>
+    <input id="start_zero" type="checkbox">
 </div>
 </body>
 </html>
