@@ -11,7 +11,7 @@ import requests
 state = 'stop'
 values = []
 
-settings = {}
+settings = {'load_multiply': 1}
 
 APPDATA_PATH = os.getenv('APPDATA') + '\\VolnovoeSoprotivlenie\\'
 SETTINGS_PATH = APPDATA_PATH + 'settings.vsst'
@@ -107,6 +107,15 @@ def load_settings():
     with open(SETTINGS_PATH, 'r') as f:
         settings = eval(f.read())
 
+@eel.expose
+def set_multiply(multiply):
+    global load_multiply
+    try:
+        settings['load_multiply'] = float(multiply)
+        save_settings()
+    except:
+        pass
+
 
 if __name__ == '__main__':
     load_settings()
@@ -121,6 +130,7 @@ if __name__ == '__main__':
         sys.exit()
 
     eel.set_chart_template(settings.get('chart_name_temp', ''))
+    eel.set_multiply(settings.get('load_multiply', 1))
 
     while True:
         if state == 'start':
@@ -129,7 +139,7 @@ if __name__ == '__main__':
                 t, m = r.text.split(':')
                 if len(values) == 0:
                     start_time = int(t)
-                time_s = round((int(t)-start_time)/1000, 2)
+                time_s = round((int(t)-start_time)*settings.get('load_multiply', 1)/1000, 2)
                 values.append((f'{time_s}s', float(m)/1000))
                 eel.addData(values[-1][0], values[-1][1])
             except requests.exceptions.ConnectTimeout:

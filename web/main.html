@@ -17,9 +17,15 @@
         $(document).ready(function () {
             $state_btn = $('#state-btn')
             $cur_value = $('#cur-value')
+            $('#multiply').change(function () {
+                eel.set_multiply($(this).val())
+            })
             ctx = document.getElementById('myChart').getContext('2d');
             myChart = new Chart(ctx, {
                 type: 'line',
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 1.2,
                 data: {
                     labels: [],
                     datasets: [{
@@ -42,6 +48,11 @@
             });
         })
 
+        $(window).resize(function () {
+            //myChart.canvas.parentNode.style.height = ($(window).height()-150) + 'px';
+        });
+
+
         eel.expose(addData)
 
         var state = 'stop'
@@ -52,6 +63,7 @@
             myChart.update();
             $cur_value.text(data)
         }
+
         function clickStartStop() {
             if (state === 'stop') {
                 eel.start()
@@ -64,7 +76,9 @@
                 $state_btn.text('Старт')
             }
         }
+
         eel.expose(cl)
+
         function cl() {
             myChart.data.labels = []
             myChart.data.datasets[0].data = []
@@ -73,30 +87,43 @@
             eel.clear()
             $('#chart-name-row').addClass('hide')
         }
+
         eel.expose(chart_opened)
+
         function chart_opened(name) {
             $('#chart-name-row').removeClass('hide')
             $('#chart-name').text(name)
         }
+
         function save_chart() {
             var template = $('#template').val()
             eel.save_chart(template)
-            if (myChart.data.labels.length === 0){
+            if (myChart.data.labels.length === 0) {
                 alert("График пуст")
             }
         }
+
         eel.expose(set_chart_template)
+
         function set_chart_template(template) {
             $('#template').val(template)
         }
+
         eel.expose(error)
-        function error(msg){
+
+        function error(msg) {
             $cur_value.text(msg)
+        }
+
+        eel.expose(set_multiply)
+
+        function set_multiply(mult) {
+            $('#multiply').val(mult)
         }
     </script>
 </head>
 <body style="min-width: 400px">
-<canvas id="myChart" style="width: 100%; height: 200px"></canvas>
+<canvas id="myChart" style="width: 100%; height: calc(100vh - 150px)"></canvas>
 <div id="chart-name-row" class="row hide cfont">
     <span>График: </span><span id="chart-name"></span>
 </div>
@@ -116,7 +143,11 @@
     <a id="save-btn" class="btn left cfont" onclick="save_chart()">Сохранить</a>
     <a id="open-btn" class="btn left cfont" onclick="eel.open_chart()">Открыть</a>
     <label for="template" class="cfont">Шаблон названия</label>
-    <input id="template" type="text" class="">
+    <input id="template" type="text">
+</div>
+<div class="row">
+    <label for="multiply" class="cfont">Множитель</label>
+    <input id="multiply" type="text">
 </div>
 </body>
 </html>

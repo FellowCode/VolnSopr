@@ -40,15 +40,25 @@
 input {
   display: block;
   float: left;
-  margin-left: 10px;
-  margin-top: 13px;
-  width: calc(100% - 230px);
   font-size: 16px; }
+  input#template {
+    margin-left: 10px;
+    margin-top: 13px;
+    width: calc(100% - 230px); }
+  input#multiply {
+    margin-left: 75px;
+    width: 50px; }
 
 label[for=template] {
   position: absolute;
   top: -4px;
   left: 223px;
   font-size: 15px; }
+
+label[for=multiply] {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  font-size: 16px; }
 
 /*# sourceMappingURL=style.css.map */

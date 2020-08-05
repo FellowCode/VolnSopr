@@ -9,7 +9,7 @@
   width: 100%;
 }
 
-.hide{
+.hide {
   display: none;
 }
 
@@ -27,11 +27,11 @@
   text-align: center;
   margin-left: 10px;
 
-  &:active{
+  &:active {
     background-color: #0c4d90;
   }
 
-  &:first-child{
+  &:first-child {
     margin-left: 0;
   }
 
@@ -53,14 +53,29 @@
 input {
   display: block;
   float: left;
-  margin-left: 10px;
-  margin-top: 13px;
-  width: calc(100% - 230px);
   font-size: 16px;
+
+  &#template {
+    margin-left: 10px;
+    margin-top: 13px;
+    width: calc(100% - 230px);
+  }
+  &#multiply{
+    margin-left: 75px;
+    width: 50px;
+  }
 }
+
 label[for=template] {
   position: absolute;
   top: -4px;
   left: 223px;
   font-size: 15px;
+}
+
+label[for=multiply] {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  font-size: 16px;
 }
