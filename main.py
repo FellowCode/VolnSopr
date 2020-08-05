@@ -140,11 +140,12 @@ if __name__ == '__main__':
                 t, m = r.text.split(':')
                 if len(values) == 0:
                     start_time = int(t)
+                m = float(m)
                 mult = settings.get('load_multiply', 1)
                 time_s = round((int(t)-start_time)/1000, 2)
                 values.append((f'{time_s}s', float(m)*mult/1000))
                 eel.addData(values[-1][0], values[-1][1])
-            except requests.exceptions.ConnectTimeout:
+            except:
                 eel.error('Нет ответа')
         eel.sleep(0.1)
 
