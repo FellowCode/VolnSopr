@@ -112,6 +112,7 @@ def set_multiply(multiply):
     global load_multiply
     try:
         settings['load_multiply'] = float(multiply)
+        print(multiply)
         save_settings()
     except:
         pass
@@ -139,8 +140,9 @@ if __name__ == '__main__':
                 t, m = r.text.split(':')
                 if len(values) == 0:
                     start_time = int(t)
-                time_s = round((int(t)-start_time)*settings.get('load_multiply', 1)/1000, 2)
-                values.append((f'{time_s}s', float(m)/1000))
+                mult = settings.get('load_multiply', 1)
+                time_s = round((int(t)-start_time)/1000, 2)
+                values.append((f'{time_s}s', float(m)*mult/1000))
                 eel.addData(values[-1][0], values[-1][1])
             except requests.exceptions.ConnectTimeout:
                 eel.error('Нет ответа')
