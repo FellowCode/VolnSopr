@@ -101,6 +101,7 @@ celerybeat-schedule
 .env
 .venv
 env/
+venv1/
 venv/
 ENV/
 env.bak/
@@ -126,3 +127,5 @@ dmypy.json
 
 #compile
 dist/
+
+.idea/
