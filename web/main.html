@@ -64,12 +64,12 @@
                                     meta.data.forEach(function (bar, index) {
                                         if (index > 0) {
                                             var data
-                                            if (dataset.data[index - 1] < dataset.data[index] && dataset.data[index + 1] < dataset.data[index]) {
+                                            if (dataset.data[index - 1] < dataset.data[index] && dataset.data[index + 1] < dataset.data[index] && (dataset.data[index]-dataset.data[index-1] > 1 || dataset.data[index]-dataset.data[index+1] > 1)) {
                                                 data = dataset.data[index];
                                                 ctx.fillText(Math.round(data*1000)/1000, bar._model.x, bar._model.y - 15);
                                             }
 
-                                            if (dataset.data[index - 1] > dataset.data[index] && dataset.data[index + 1] > dataset.data[index]) {
+                                            if (dataset.data[index - 1] > dataset.data[index] && dataset.data[index + 1] > dataset.data[index] && (dataset.data[index]-dataset.data[index-1] < 1 || dataset.data[index]-dataset.data[index+1] < 1)) {
                                                 data = dataset.data[index];
                                                 ctx.fillText(Math.round(data*1000)/1000, bar._model.x, bar._model.y + 25);
                                             }
