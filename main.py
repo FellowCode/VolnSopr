@@ -146,7 +146,7 @@ if __name__ == '__main__':
     while True:
         if state == 'start':
             try:
-                r = requests.get('http://'+SENSOR_IP+'/get-load/', timeout=1)
+                r = requests.get('http://'+SENSOR_IP+'/get-load/', timeout=0.4)
                 t, m = r.text.split(':')
                 mult = settings.get('load_multiply', 1)
                 m = float(m)*mult/1000
@@ -161,7 +161,7 @@ if __name__ == '__main__':
                 eel.addData(values[-1][0], values[-1][1])
             except:
                 eel.error('Нет ответа')
-        eel.sleep(0.05)
+        eel.sleep(0.01)
 
 """ assoc .vlsp=VolnSopr
     ftype VolnSopr=perl.exe %1 %* """
