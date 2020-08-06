@@ -40,13 +40,37 @@
                 },
                 options: {
                     legend: {
-                        display: true,
+                        display: false,
                         position: 'top',
                         labels: {
                             boxWidth: 80,
                             fontColor: 'black'
                         }
+                    },
+                    animation: {
+                        duration: 1,
+                        onComplete: function () {
+                            var chartInstance = this.chart,
+                                ctx = chartInstance.ctx;
+                            ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+
+                            this.data.datasets.forEach(function (dataset, i) {
+                                var meta = chartInstance.controller.getDatasetMeta(i);
+                                meta.data.forEach(function (bar, index) {
+                                    if (index > 0 &&
+                                        (dataset.data[index - 1] < dataset.data[index] && dataset.data[index + 1] < dataset.data[index]) ||
+                                        (dataset.data[index - 1] > dataset.data[index] && dataset.data[index + 1] > dataset.data[index])) {
+                                        var data = dataset.data[index];
+                                        ctx.fillText(data, bar._model.x, bar._model.y - 5);
+                                    }
+                                });
+                            });
+
+                        }
                     }
+
                 }
             });
         })
@@ -123,8 +147,10 @@
         function set_multiply(mult) {
             $('#multiply').val(mult)
         }
+
         eel.expose(set_start_zero)
-        function set_start_zero(value){
+
+        function set_start_zero(value) {
             $('#start_zero').prop('checked', value)
         }
     </script>
