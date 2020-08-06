@@ -46,8 +46,40 @@
                             boxWidth: 80,
                             fontColor: 'black'
                         }
-                    }
+                    },
+                    animation: {
+                        duration: 1000,
+                        onComplete: function () {
+                            if (state === 'stop') {
+                                var chartInstance = this.chart,
+                                    ctx = this.chart.ctx;
+                                ctx.save();
+                                ctx.font = "0.7em sans-serif";
+                                ctx.fillStyle = 'black';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'bottom';
 
+                                chartInstance.data.datasets.forEach(function (dataset, i) {
+                                    var meta = chartInstance.controller.getDatasetMeta(i);
+                                    meta.data.forEach(function (bar, index) {
+                                        if (index > 0) {
+                                            var data
+                                            if (dataset.data[index - 1] < dataset.data[index] && dataset.data[index + 1] < dataset.data[index]) {
+                                                data = dataset.data[index];
+                                                ctx.fillText(Math.round(data*1000)/1000, bar._model.x, bar._model.y - 10);
+                                            }
+
+                                            if (dataset.data[index - 1] > dataset.data[index] && dataset.data[index + 1] > dataset.data[index]) {
+                                                data = dataset.data[index];
+                                                ctx.fillText(Math.round(data*1000)/1000, bar._model.x, bar._model.y + 18);
+                                            }
+                                        }
+                                    });
+                                });
+                                ctx.restore();
+                            }
+                        }
+                    }
                 }
             });
         })
@@ -78,29 +110,6 @@
                 eel.stop()
                 state = 'stop'
                 $state_btn.text('Старт')
-                var chartInstance = myChart,
-                    ctx = chartInstance.ctx;
-                ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-
-                chartInstance.data.datasets.forEach(function (dataset, i) {
-                    var meta = chartInstance.controller.getDatasetMeta(i);
-                    meta.data.forEach(function (bar, index) {
-                        if (index > 0) {
-                            var data
-                            if (dataset.data[index - 1] < dataset.data[index] && dataset.data[index + 1] < dataset.data[index]) {
-                                data = dataset.data[index];
-                                ctx.fillText(data, bar._model.x, bar._model.y - 10);
-                            }
-
-                            if (dataset.data[index - 1] > dataset.data[index] && dataset.data[index + 1] > dataset.data[index]) {
-                                data = dataset.data[index];
-                                ctx.fillText(data, bar._model.x, bar._model.y + 10);
-                            }
-                        }
-                    });
-                });
             }
         }
 

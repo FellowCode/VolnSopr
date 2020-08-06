@@ -146,7 +146,7 @@ if __name__ == '__main__':
     while True:
         if state == 'start':
             try:
-                r = requests.get('http://'+SENSOR_IP+'/get-load/', timeout=0.5)
+                r = requests.get('http://'+SENSOR_IP+'/get-load/', timeout=1)
                 t, m = r.text.split(':')
                 mult = settings.get('load_multiply', 1)
                 m = float(m)*mult/1000
