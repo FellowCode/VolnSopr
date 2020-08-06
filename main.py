@@ -161,7 +161,7 @@ if __name__ == '__main__':
                 eel.addData(values[-1][0], values[-1][1])
             except:
                 eel.error('Нет ответа')
-        eel.sleep(0.1)
+        eel.sleep(0.05)
 
 """ assoc .vlsp=VolnSopr
     ftype VolnSopr=perl.exe %1 %* """
