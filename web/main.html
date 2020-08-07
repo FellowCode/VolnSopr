@@ -9,6 +9,9 @@
     <script type="text/javascript" src="eel.js"></script>
     <script type="text/javascript" src="js/jquery-3.5.1.min.js"></script>
     <script type="text/javascript" src="js/chart.min.js"></script>
+    <script type="text/javascript" src="js/plugin-select.js"></script>
+    <script type="text/javascript" src="js/peak-values-plugin.js"></script>
+
     <script>
         var ctx
         var myChart
@@ -47,38 +50,59 @@
                             fontColor: 'black'
                         }
                     },
-                    animation: {
-                        duration: 500,
-                        onComplete: function () {
-                            if (state === 'stop') {
-                                var chartInstance = this.chart,
-                                    ctx = this.chart.ctx;
-                                ctx.save();
-                                ctx.font = "0.7em sans-serif";
-                                ctx.fillStyle = 'black';
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'bottom';
-
-                                chartInstance.data.datasets.forEach(function (dataset, i) {
-                                    var meta = chartInstance.controller.getDatasetMeta(i);
-                                    var last_bar
-                                    meta.data.forEach(function (bar, index) {
-                                        if (index > 0) {
-                                            var data = dataset.data[index], data_be = dataset.data[index - 1], data_af = dataset.data[index + 1]
-                                            if (data_be < data && data_af < data && (data-data_be > 0.1 || data-data_af > 0.1)) {
-                                                ctx.fillText(Math.round(data*1000)/1000, bar._model.x, bar._model.y - 15);
-                                            }
-
-                                            if (data_be > data && data_af > data && (data-data_be < -0.1 || data-data_af < -0.1)) {
-                                                ctx.fillText(Math.round(data*1000)/1000, bar._model.x, bar._model.y + 25);
-                                            }
-                                            last_bar = bar
-                                        }
-                                    });
-                                });
-                                ctx.restore();
+                    layout: {
+                        padding: {
+                            top: 15,
+                            bottom: 15,
+                        }
+                    },
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                // Include a dollar sign in the ticks
+                                callback: function (value, index, values) {
+                                    return value + 'c';
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                // Include a dollar sign in the ticks
+                                callback: function (value, index, values) {
+                                    return value + ' кг';
+                                }
+                            }
+                        }]
+                    },
+                    tooltips: {
+                        enabled: true,
+                        mode: 'single',
+                        callbacks: {
+                            label: function (tooltipItems, data) {
+                                return tooltipItems.yLabel + ' кг';
                             }
                         }
+                    },
+                    // events: ['mousedown', 'mouseup', 'mousemove'],
+                    // select: {
+                    //     selectCallback: (startPoint, endPoint) => {
+                    //         console.log(startPoint, endPoint)
+                    //     }
+                    // },
+                    hover: {
+                        animationDuration: 0,
+                    },
+                    animation: {
+                        duration: 500,
+                    },
+
+                    plugins: {
+                        peakValuesPlugin: {
+                            minimumDifference: 0.1,
+                            color: 'black',
+                            fontSize: '0.7em',
+                            distance: 15,
+                        },
                     }
                 }
             });
@@ -94,7 +118,7 @@
         var state = 'stop'
 
         function addData(label, data) {
-            myChart.data.labels.push(label);
+            myChart.data.labels.push(parseFloat(label.replace('s', '')));
             myChart.data.datasets[0].data.push(parseFloat(data));
             myChart.update();
             $cur_value.text(data)
@@ -141,26 +165,31 @@
         }
 
         eel.expose(set_chart_template)
+
         function set_chart_template(template) {
             $('#template').val(template)
         }
 
         eel.expose(error)
+
         function error(msg) {
             $cur_value.text(msg)
         }
 
         eel.expose(set_multiply)
+
         function set_multiply(mult) {
             $('#multiply').val(mult)
         }
 
         eel.expose(set_start_zero)
+
         function set_start_zero(value) {
             $('#start_zero').prop('checked', value)
         }
 
         eel.expose(set_moffset)
+
         function set_moffset(m_offset) {
             $('#m_offset').text(m_offset)
         }
