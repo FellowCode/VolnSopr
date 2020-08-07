@@ -56,6 +56,33 @@
                             bottom: 15,
                         }
                     },
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                // Include a dollar sign in the ticks
+                                callback: function (value, index, values) {
+                                    return value + 'c';
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                // Include a dollar sign in the ticks
+                                callback: function (value, index, values) {
+                                    return value + ' кг';
+                                }
+                            }
+                        }]
+                    },
+                    tooltips: {
+                        enabled: true,
+                        mode: 'single',
+                        callbacks: {
+                            label: function (tooltipItems, data) {
+                                return tooltipItems.yLabel + ' кг';
+                            }
+                        }
+                    },
                     // events: ['mousedown', 'mouseup', 'mousemove'],
                     // select: {
                     //     selectCallback: (startPoint, endPoint) => {
@@ -68,6 +95,7 @@
                     animation: {
                         duration: 500,
                     },
+
                     plugins: {
                         peakValuesPlugin: {
                             minimumDifference: 0.1,
@@ -90,7 +118,7 @@
         var state = 'stop'
 
         function addData(label, data) {
-            myChart.data.labels.push(label);
+            myChart.data.labels.push(parseFloat(label.replace('s', '')));
             myChart.data.datasets[0].data.push(parseFloat(data));
             myChart.update();
             $cur_value.text(data)
