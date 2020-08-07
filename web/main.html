@@ -61,18 +61,18 @@
 
                                 chartInstance.data.datasets.forEach(function (dataset, i) {
                                     var meta = chartInstance.controller.getDatasetMeta(i);
+                                    var last_bar
                                     meta.data.forEach(function (bar, index) {
                                         if (index > 0) {
-                                            var data
-                                            if (dataset.data[index - 1] < dataset.data[index] && dataset.data[index + 1] < dataset.data[index] && (dataset.data[index]-dataset.data[index-1] > 1 || dataset.data[index]-dataset.data[index+1] > 1)) {
-                                                data = dataset.data[index];
+                                            var data = dataset.data[index], data_be = dataset.data[index - 1], data_af = dataset.data[index + 1]
+                                            if (data_be < data && data_af < data && (data-data_be > 0.1 || data-data_af > 0.1)) {
                                                 ctx.fillText(Math.round(data*1000)/1000, bar._model.x, bar._model.y - 15);
                                             }
 
-                                            if (dataset.data[index - 1] > dataset.data[index] && dataset.data[index + 1] > dataset.data[index] && (dataset.data[index]-dataset.data[index-1] < 1 || dataset.data[index]-dataset.data[index+1] < 1)) {
-                                                data = dataset.data[index];
+                                            if (data_be > data && data_af > data && (data-data_be < -0.1 || data-data_af < -0.1)) {
                                                 ctx.fillText(Math.round(data*1000)/1000, bar._model.x, bar._model.y + 25);
                                             }
+                                            last_bar = bar
                                         }
                                     });
                                 });
@@ -95,7 +95,7 @@
 
         function addData(label, data) {
             myChart.data.labels.push(label);
-            myChart.data.datasets[0].data.push(data);
+            myChart.data.datasets[0].data.push(parseFloat(data));
             myChart.update();
             $cur_value.text(data)
         }
