@@ -64,9 +64,6 @@ input {
     margin-left: 75px;
     width: 50px;
   }
-  &#start_zero{
-    margin-left: 20px;
-  }
 }
 
 label[for=template] {
@@ -81,5 +78,10 @@ label[for=multiply] {
   top: 2px;
   left: 0;
   font-size: 16px;
+}
+
+.col{
+  float: left;
+  margin-left: 15px;
 }
 

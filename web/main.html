@@ -140,27 +140,28 @@
         }
 
         eel.expose(set_chart_template)
-
         function set_chart_template(template) {
             $('#template').val(template)
         }
 
         eel.expose(error)
-
         function error(msg) {
             $cur_value.text(msg)
         }
 
         eel.expose(set_multiply)
-
         function set_multiply(mult) {
             $('#multiply').val(mult)
         }
 
         eel.expose(set_start_zero)
-
         function set_start_zero(value) {
             $('#start_zero').prop('checked', value)
+        }
+
+        eel.expose(set_moffset)
+        function set_moffset(m_offset) {
+            $('#m_offset').text(m_offset)
         }
     </script>
 </head>
@@ -190,8 +191,14 @@
 <div class="row">
     <label for="multiply" class="cfont">Множитель</label>
     <input id="multiply" type="text">
-    <label for="start_zero" class="cfont">Обнулять старт</label>
-    <input id="start_zero" type="checkbox">
+    <div class="col">
+        <label for="start_zero" class="cfont">Обнулять старт</label>
+        <input id="start_zero" type="checkbox">
+    </div>
+    <div class="col cfont">
+        <span>Натяжение троса: </span>
+        <span id="m_offset">None</span>
+    </div>
 </div>
 </body>
 </html>

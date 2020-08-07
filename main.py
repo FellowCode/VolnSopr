@@ -68,6 +68,7 @@ def save_chart(template):
     path = dialog.GetPath()
 
     with open(path, 'w') as f:
+        print(f'm_offset={round(m_offset, 3)}')
         for x, y in values:
             print(x, y, file=f, sep=':')
 
@@ -85,7 +86,15 @@ def open_chart():
     global values
     values = []
     with open(path, 'r') as f:
-        for line in f.readlines():
+        for i, line in enumerate(f.readlines()):
+            if i == 0:
+                try:
+                    name, value = line.strip().split('=')
+                    if name == 'm_offset':
+                        eel.set_moffset(value)
+                    continue
+                except:
+                    eel.set_moffset('None')
             x, y = line.strip().split(':')
             values.append((x, y))
             eel.addData(values[-1][0], values[-1][1])
@@ -152,6 +161,7 @@ if __name__ == '__main__':
                 m = float(m)*mult/1000
                 if len(values) == 0:
                     start_time = int(t)
+                    eel.set_moffset(str(round(m, 3)))
                     if settings.get('start_from_zero', False):
                         m_offset = m
                     else:

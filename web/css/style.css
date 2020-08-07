@@ -48,8 +48,6 @@ input {
   input#multiply {
     margin-left: 75px;
     width: 50px; }
-  input#start_zero {
-    margin-left: 20px; }
 
 label[for=template] {
   position: absolute;
@@ -62,5 +60,9 @@ label[for=multiply] {
   top: 2px;
   left: 0;
   font-size: 16px; }
+
+.col {
+  float: left;
+  margin-left: 15px; }
 
 /*# sourceMappingURL=style.css.map */
