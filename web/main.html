@@ -14,9 +14,11 @@
 
     <script>
         var ctx
+        var $chartCanvas
         var myChart
         var $state_btn
         var $cur_value
+        window.addEventListener('resize', function () { $chartCanvas.height($(window).height() - 170); myChart.resize() })
         $(document).ready(function () {
             $state_btn = $('#state-btn')
             $cur_value = $('#cur-value')
@@ -26,12 +28,11 @@
             $('#start_zero').change(function () {
                 eel.start_from_zero(this.checked)
             })
+            $chartCanvas = $('#myChart')
             ctx = document.getElementById('myChart').getContext('2d');
             myChart = new Chart(ctx, {
                 type: 'line',
-                responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 1.2,
+
                 data: {
                     labels: [],
                     datasets: [{
@@ -42,6 +43,8 @@
                     }]
                 },
                 options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     legend: {
                         display: false,
                         position: 'top',
@@ -107,10 +110,6 @@
                 }
             });
         })
-
-        $(window).resize(function () {
-            //myChart.canvas.parentNode.style.height = ($(window).height()-150) + 'px';
-        });
 
 
         eel.expose(addData)
