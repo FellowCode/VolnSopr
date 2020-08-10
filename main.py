@@ -38,10 +38,12 @@ def stop():
     global state
     state = 'stop'
     if len(values) > 0:
-        filename = '{d}.{m}.{Y}; {h}_{min}.vlsp'.format(**reformat_datetime())
+        filename = '{d}.{m}.{Y}; {h}_{min}_{sec}.vlsp'.format(**reformat_datetime())
         save_chart(BACKUP_CHARTS_DIR + filename)
-        onlyfiles = [f for f in listdir(BACKUP_CHARTS_DIR) if isfile(join(BACKUP_CHARTS_DIR, f))]
-        print(onlyfiles)
+        onlyfiles = [BACKUP_CHARTS_DIR + '\\' + f for f in listdir(BACKUP_CHARTS_DIR) if isfile(join(BACKUP_CHARTS_DIR, f))]
+        while len(onlyfiles) > 20:
+            os.remove(onlyfiles[0])
+            onlyfiles.pop(0)
 
 
 def add_zero(val):
@@ -56,7 +58,9 @@ def reformat_datetime():
         hour = add_zero(hour)
     if (minute := datetime.now().minute) < 10:
         minute = add_zero(minute)
-    return {'d': day, 'm': month, 'Y': datetime.now().year, 'y': datetime.now().year - 2000, 'h': hour, 'min': minute}
+    if (sec := datetime.now().second) < 10:
+        sec = add_zero(sec)
+    return {'d': day, 'm': month, 'Y': datetime.now().year, 'y': datetime.now().year - 2000, 'h': hour, 'min': minute, 'sec': sec}
 
 
 @eel.expose
