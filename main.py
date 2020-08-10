@@ -40,10 +40,9 @@ def stop():
     if len(values) > 0:
         filename = '{d}.{m}.{Y}; {h}_{min}_{sec}.vlsp'.format(**reformat_datetime())
         save_chart(BACKUP_CHARTS_DIR + filename)
-        onlyfiles = [BACKUP_CHARTS_DIR + '\\' + f for f in listdir(BACKUP_CHARTS_DIR) if isfile(join(BACKUP_CHARTS_DIR, f))]
-        while len(onlyfiles) > 20:
-            os.remove(onlyfiles[0])
-            onlyfiles.pop(0)
+        backup_charts = [BACKUP_CHARTS_DIR + '\\' + f for f in listdir(BACKUP_CHARTS_DIR) if isfile(join(BACKUP_CHARTS_DIR, f))]
+        while len(backup_charts) > 20:
+            os.remove(backup_charts.pop(0))
 
 
 def add_zero(val):
