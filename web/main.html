@@ -164,7 +164,7 @@
 
         function save_chart() {
             var template = $('#template').val()
-            eel.save_chart(template)
+            eel.save_chart_dialog(template)
             if (myChart.data.labels.length === 0) {
                 alert("График пуст")
             }

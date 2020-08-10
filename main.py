@@ -7,6 +7,8 @@ import pprint
 from datetime import datetime
 import pyautogui
 import requests
+from os import listdir
+from os.path import isfile, join
 
 state = 'stop'
 values = []
@@ -14,11 +16,13 @@ values = []
 settings = {'load_multiply': 1}
 
 APPDATA_PATH = os.getenv('APPDATA') + '\\VolnovoeSoprotivlenie\\'
+BACKUP_CHARTS_DIR = APPDATA_PATH + '\\backup_charts\\'
 SETTINGS_PATH = APPDATA_PATH + 'settings.vsst'
 SENSOR_IP = "192.168.43.50"
 
 start_time = 0
 m_offset = 0
+
 
 @eel.expose
 def start():
@@ -28,21 +32,22 @@ def start():
     global values
     values = []
 
+
 @eel.expose
 def stop():
     global state
     state = 'stop'
+    if len(values) > 0:
+        filename = '{d}.{m}.{Y}; {h}_{min}.vlsp'.format(**reformat_datetime())
+        save_chart(BACKUP_CHARTS_DIR + filename)
+        onlyfiles = [f for f in listdir(BACKUP_CHARTS_DIR) if isfile(join(BACKUP_CHARTS_DIR, f))]
+        print(onlyfiles)
 
-@eel.expose
-def clear():
-    global values
-    values = []
 
 def add_zero(val):
-    return '0'+str(val)
+    return '0' + str(val)
 
-@eel.expose
-def save_chart(template):
+def reformat_datetime():
     if (day := datetime.now().day) < 10:
         day = add_zero(day)
     if (month := datetime.now().month) < 10:
@@ -51,7 +56,28 @@ def save_chart(template):
         hour = add_zero(hour)
     if (minute := datetime.now().minute) < 10:
         minute = add_zero(minute)
-    filename = template.format(d=day, m=month, Y=datetime.now().year, y=datetime.now().year-2000, h=hour, min=minute)
+    return {'d': day, 'm': month, 'Y': datetime.now().year, 'y': datetime.now().year - 2000, 'h': hour, 'min': minute}
+
+
+@eel.expose
+def clear():
+    global values
+    values = []
+
+
+def save_chart(path):
+    dr = '\\'.join(path.split('\\')[0:-1])
+    if not os.path.exists(dr):
+        os.makedirs(dr)
+    with open(path, 'w') as f:
+        print(f'm_offset={round(m_offset, 3)}', file=f)
+        for x, y in values:
+            print(x, y, file=f, sep=':')
+
+
+@eel.expose
+def save_chart_dialog(template):
+    filename = template.format(**reformat_datetime())
     settings['chart_name_temp'] = template
     save_settings()
 
@@ -60,17 +86,15 @@ def save_chart(template):
         return
 
     style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-    dialog = wx.FileDialog(None, 'Сохранить график', defaultFile=filename, wildcard='VLSP files (*.vlsp)|*.vlsp', style=style)
+    dialog = wx.FileDialog(None, 'Сохранить график', defaultFile=filename, wildcard='VLSP files (*.vlsp)|*.vlsp',
+                           style=style)
 
     if dialog.ShowModal() == wx.ID_CANCEL:
         return
 
     path = dialog.GetPath()
 
-    with open(path, 'w') as f:
-        print(f'm_offset={round(m_offset, 3)}', file=f)
-        for x, y in values:
-            print(x, y, file=f, sep=':')
+    save_chart(path)
 
 
 @eel.expose
@@ -111,12 +135,14 @@ def save_settings():
     with open(SETTINGS_PATH, 'w') as f:
         pprint.pprint(settings, stream=f)
 
+
 def load_settings():
     global settings
     if not os.path.exists(SETTINGS_PATH):
         return
     with open(SETTINGS_PATH, 'r') as f:
         settings = eval(f.read())
+
 
 @eel.expose
 def set_multiply(multiply):
@@ -126,6 +152,7 @@ def set_multiply(multiply):
         save_settings()
     except:
         pass
+
 
 @eel.expose
 def start_from_zero(value):
@@ -156,10 +183,10 @@ if __name__ == '__main__':
     while True:
         if state == 'start':
             try:
-                r = requests.get('http://'+SENSOR_IP+'/get-load/', timeout=0.4)
+                r = requests.get('http://' + SENSOR_IP + '/get-load/', timeout=0.4)
                 t, m = r.text.split(':')
                 mult = settings.get('load_multiply', 1)
-                m = float(m)*mult/1000
+                m = float(m) * mult / 1000
                 if len(values) == 0:
                     start_time = int(t)
                     eel.set_moffset(str(round(m, 3)))
@@ -167,8 +194,8 @@ if __name__ == '__main__':
                         m_offset = m
                     else:
                         m_offset = 0
-                time_s = round((int(t)-start_time)/1000, 2)
-                values.append((f'{time_s}s', m-m_offset))
+                time_s = round((int(t) - start_time) / 1000, 2)
+                values.append((f'{time_s}s', m - m_offset))
                 eel.addData(values[-1][0], values[-1][1])
                 eel.updateChart(500)
             except:
@@ -177,4 +204,3 @@ if __name__ == '__main__':
 
 """ assoc .vlsp=VolnSopr
     ftype VolnSopr=perl.exe %1 %* """
-
