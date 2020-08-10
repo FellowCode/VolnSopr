@@ -120,8 +120,14 @@
         function addData(label, data) {
             myChart.data.labels.push(parseFloat(label.replace('s', '')));
             myChart.data.datasets[0].data.push(parseFloat(data));
-            myChart.update();
+
             $cur_value.text(data)
+        }
+
+        eel.expose(updateChart)
+
+        function updateChart() {
+            myChart.update();
         }
 
         function clickStartStop() {
@@ -195,7 +201,7 @@
     </script>
 </head>
 <body style="min-width: 400px">
-<canvas id="myChart" style="width: 100%; height: calc(100vh - 150px)"></canvas>
+<canvas id="myChart" style="width: 100%; height: calc(100vh - 170px)"></canvas>
 <div id="chart-name-row" class="row hide cfont">
     <span>График: </span><span id="chart-name"></span>
 </div>
