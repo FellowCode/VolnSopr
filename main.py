@@ -98,7 +98,7 @@ def open_chart():
             x, y = line.strip().split(':')
             values.append((x, y))
             eel.addData(values[-1][0], values[-1][1])
-        eel.updateChart()
+        eel.updateChart(0)
 
     filename = '.'.join(path.split('\\')[-1].split('.')[:-1])
     eel.chart_opened(filename)
@@ -170,7 +170,7 @@ if __name__ == '__main__':
                 time_s = round((int(t)-start_time)/1000, 2)
                 values.append((f'{time_s}s', m-m_offset))
                 eel.addData(values[-1][0], values[-1][1])
-                eel.updateChart()
+                eel.updateChart(500)
             except:
                 eel.error('Нет ответа')
         eel.sleep(0.01)
