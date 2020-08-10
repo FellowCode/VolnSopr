@@ -68,7 +68,7 @@ def save_chart(template):
     path = dialog.GetPath()
 
     with open(path, 'w') as f:
-        print(f'm_offset={round(m_offset, 3)}')
+        print(f'm_offset={round(m_offset, 3)}', file=f)
         for x, y in values:
             print(x, y, file=f, sep=':')
 
