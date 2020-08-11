@@ -18,8 +18,19 @@
         var myChart
         var $state_btn
         var $cur_value
-        window.addEventListener('resize', function () { $chartCanvas.height($(window).height() - 170); myChart.resize() })
+        var $overlay
+        var original_data = {'labels': [], 'datas': []}
+        window.addEventListener('resize', function () {
+            $chartCanvas.height($(window).height() - 180);
+            $($overlay).width($chartCanvas.width())
+            $($overlay).prop('width', $chartCanvas.width())
+            myChart.resize()
+        })
         $(document).ready(function () {
+            $chartCanvas = $('#myChart')
+            $overlay = document.getElementById('overlay')
+            $($overlay).width($chartCanvas.width())
+            $($overlay).prop('width', $chartCanvas.width())
             $state_btn = $('#state-btn')
             $cur_value = $('#cur-value')
             $('#multiply').change(function () {
@@ -28,7 +39,7 @@
             $('#start_zero').change(function () {
                 eel.start_from_zero(this.checked)
             })
-            $chartCanvas = $('#myChart')
+
             ctx = document.getElementById('myChart').getContext('2d');
             myChart = new Chart(ctx, {
                 type: 'line',
@@ -86,12 +97,18 @@
                             }
                         }
                     },
-                    // events: ['mousedown', 'mouseup', 'mousemove'],
-                    // select: {
-                    //     selectCallback: (startPoint, endPoint) => {
-                    //         console.log(startPoint, endPoint)
-                    //     }
-                    // },
+                    events: ['mousedown', 'mouseup', 'mousemove'],
+                    select: {
+                        selectCallback: (startPoint, endPoint) => {
+                            myChart.data.labels = myChart.data.labels.slice(startPoint.idx, endPoint.idx)
+                            myChart.data.datasets[0].data = myChart.data.datasets[0].data.slice(startPoint.idx, endPoint.idx)
+                            myChart.update(0)
+                            $overlay.getContext('2d').clearRect(0, 0, $overlay.width, $overlay.height);
+                            $('#cancel-select').show()
+                            $('#cut-select').show()
+                            eel.set_select_range(startPoint.idx, endPoint.idx)
+                        }
+                    },
                     hover: {
                         animationDuration: 0,
                     },
@@ -106,6 +123,10 @@
                             fontSize: '0.7em',
                             distance: 15,
                         },
+                        selectPlugin: {
+                            overlay: $overlay,
+                            color: 'rgba(127,0,6,0.4)'
+                        }
                     }
                 }
             });
@@ -117,16 +138,18 @@
         var state = 'stop'
 
         function addData(label, data) {
-            myChart.data.labels.push(parseFloat(label.replace('s', '')));
+            label = parseFloat(label.replace('s', ''))
+            myChart.data.labels.push(label);
             myChart.data.datasets[0].data.push(parseFloat(data));
-
+            original_data.labels.push(label)
+            original_data.datas.push(data)
             $cur_value.text(data)
         }
 
         eel.expose(updateChart)
 
         function updateChart(duration) {
-            myChart.update(duration);
+            myChart.update();
         }
 
         function clickStartStop() {
@@ -135,6 +158,7 @@
                 state = 'start'
                 $state_btn.text('Стоп')
                 $('#chart-name-row').addClass('hide')
+                cl()
             } else {
                 eel.stop()
                 state = 'stop'
@@ -150,8 +174,10 @@
             myChart.update();
             $cur_value.text('None')
             $('#m_offset').text('None')
-            eel.clear()
             $('#chart-name-row').addClass('hide')
+            original_data.labels = []
+            original_data.datas = []
+            $overlay.getContext('2d').clearRect(0, 0, $overlay.width, $overlay.height);
         }
 
         eel.expose(chart_opened)
@@ -159,6 +185,7 @@
         function chart_opened(name) {
             $('#chart-name-row').removeClass('hide')
             $('#chart-name').text(name)
+            myChart.update(0)
         }
 
         function save_chart() {
@@ -198,10 +225,27 @@
         function set_moffset(m_offset) {
             $('#m_offset').text(m_offset)
         }
+
+        function cutChart() {
+            original_data.labels = myChart.data.labels
+            original_data.datas = myChart.data.datasets[0].data
+            $('#cancel-select').hide()
+            $('#cut-select').hide()
+            eel.cut_values()
+        }
+
+        function cancelSelect() {
+            myChart.data.labels = original_data.labels
+            myChart.data.datasets[0].data = original_data.datas
+            myChart.update(0)
+            $('#cancel-select').hide()
+            $('#cut-select').hide()
+        }
     </script>
 </head>
 <body style="min-width: 400px">
-<canvas id="myChart" style="width: 100%; height: calc(100vh - 170px)"></canvas>
+<canvas id="myChart" style="width: 100%; height: calc(100vh - 180px)"></canvas>
+<canvas id="overlay"></canvas>
 <div id="chart-name-row" class="row hide cfont">
     <span>График: </span><span id="chart-name"></span>
 </div>
@@ -234,6 +278,9 @@
         <span>Натяжение троса: </span>
         <span id="m_offset">None</span>
     </div>
+    <a id="cut-select" class="btn right cfont" style="display:none;" onclick="cutChart()">Обрезать</a>
+    <a id="cancel-select" class="btn right cfont" style="width: 200px; display: none" onclick="cancelSelect()">Отмена
+        выделения</a>
 </div>
 </body>
 </html>

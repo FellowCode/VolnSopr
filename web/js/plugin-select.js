@@ -37,17 +37,22 @@ function _getDirection(start, end) {
 
 var select;
 var drag = false;
-var selectRange = {x1:0, x2:0}
+var selectRange = {x1: 0, x2: 0}
+var overlay_ctx
+var overlay
+var select_color
 
 // Chartjs Select Plugin
 var selectPlugin = {
     afterInit: (chart) => {
         select = chart.options.select;
-
+        overlay = chart.options.plugins.selectPlugin.overlay
+        overlay_ctx = overlay.getContext('2d');
+        select_color = chart.options.plugins.selectPlugin.color
     },
     beforeEvent: (chart, evt) => {
         if (drag && evt.type === 'mousemove') {
-            //chart.update()
+            overlay_ctx.clearRect(0, 0, overlay.width, overlay.height);
         }
         if (evt.type !== 'mousedown' && evt.type !== 'mouseup') {
             return;
@@ -57,7 +62,6 @@ var selectPlugin = {
             this.init = {};
             this.selection = {};
             drag = true
-            //chart.update()
             selectRange.x1 = evt.x
             selectRange.x2 = evt.x
         }
@@ -65,25 +69,19 @@ var selectPlugin = {
         this.init[evt.type] = evt.x;
 
     },
-    afterDatasetsDraw: function(chart){
-        chart.ctx.fillStyle = 'rgba(127,0,6,0.4)'
-        chart.ctx.fillRect(selectRange.x1, 0, selectRange.x2 - selectRange.x1, ctx.canvas.clientHeight);
-    },
     afterEvent: (chart, evt) => {
+
         if (drag && evt.type === 'mousemove') {
 
-            chart.ctx.fillStyle = 'rgba(127,0,6,0.4)'
+
             if (evt.x > selectRange.x2) {
-                var last_x2 = selectRange.x2
                 selectRange.x2 = evt.x
-                chart.ctx.fillRect(last_x2, 0, selectRange.x2-last_x2-1, ctx.canvas.clientHeight);
             }
             if (evt.x < selectRange.x1) {
-                var last_x1 = selectRange.x1
                 selectRange.x1 = evt.x
-                chart.ctx.fillRect(selectRange.x1, 0, last_x1-selectRange.x1-1, ctx.canvas.clientHeight);
             }
-            console.log(selectRange)
+            overlay_ctx.fillStyle = select_color
+            overlay_ctx.fillRect(selectRange.x1, 0, selectRange.x2 - selectRange.x1, ctx.canvas.clientHeight);
         }
 
         if (evt.type !== 'mousedown' && evt.type !== 'mouseup') {
@@ -95,6 +93,7 @@ var selectPlugin = {
         this.selection[evt.type] = i;
 
         if (evt.type === 'mouseup') {
+
             drag = false
             var start, end;
             var direction = _getDirection(this.init.mousedown, this.init.mouseup);
@@ -109,12 +108,18 @@ var selectPlugin = {
                 start = end = null;
             }
 
-            if (direction === 0 || ((end.idx - start.idx) * (direction) === -1)) {
-                start = end = null;
+            if (typeof end !== 'undefined' && typeof start !== 'undefined') {
+
+                if (direction === 0 || ((end.idx - start.idx) * (direction) === -1)) {
+                    start = end = null;
+                }
+                overlay_ctx.clearRect(0, 0, overlay.width, overlay.height);
+                overlay_ctx.fillStyle = select_color
+                overlay_ctx.fillRect(start.x - 2, 0, end.x - start.x, ctx.canvas.clientHeight);
+                select.selectCallback(start, end);
+
+
             }
-
-
-            select.selectCallback(start, end);
         }
     }
 };

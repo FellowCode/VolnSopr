@@ -65,4 +65,15 @@ label[for=multiply] {
   float: left;
   margin-left: 15px; }
 
+#overlay {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: calc(100vh - 170px);
+  z-index: 10;
+  top: 0;
+  left: 0;
+  margin-left: 10px;
+  pointer-events: none; }
+
 /*# sourceMappingURL=style.css.map */

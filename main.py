@@ -22,7 +22,9 @@ SENSOR_IP = "192.168.43.50"
 
 start_time = 0
 m_offset = 0
-
+select = (0, 0)
+chart_is_open = False
+current_chart_filename = ''
 
 @eel.expose
 def start():
@@ -30,6 +32,8 @@ def start():
     state = 'start'
     eel.cl()
     global values
+    global chart_is_open
+    chart_is_open = False
     values = []
 
 
@@ -66,6 +70,8 @@ def reformat_datetime():
 def clear():
     global values
     values = []
+    global chart_is_open
+    chart_is_open = False
 
 
 def save_chart(path):
@@ -89,8 +95,13 @@ def save_chart_dialog(template):
         return
 
     style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-    dialog = wx.FileDialog(None, 'Сохранить график', defaultFile=filename, wildcard='VLSP files (*.vlsp)|*.vlsp',
-                           style=style)
+    if chart_is_open:
+        global current_chart_filename
+        dialog = wx.FileDialog(None, 'Сохранить график', defaultFile=current_chart_filename, wildcard='VLSP files (*.vlsp)|*.vlsp',
+                               style=style)
+    else:
+        dialog = wx.FileDialog(None, 'Сохранить график', defaultFile=filename, wildcard='VLSP files (*.vlsp)|*.vlsp',
+                               style=style)
 
     if dialog.ShowModal() == wx.ID_CANCEL:
         return
@@ -112,6 +123,8 @@ def open_chart():
     eel.cl()
     global values
     values = []
+    global current_chart_filename
+    current_chart_filename = path.split('\\')[-1]
     with open(path, 'r') as f:
         for i, line in enumerate(f.readlines()):
             if i == 0:
@@ -129,6 +142,9 @@ def open_chart():
 
     filename = '.'.join(path.split('\\')[-1].split('.')[:-1])
     eel.chart_opened(filename)
+
+    global chart_is_open
+    chart_is_open = True
 
 
 def save_settings():
@@ -165,6 +181,20 @@ def start_from_zero(value):
         save_settings()
     except:
         pass
+
+
+
+@eel.expose
+def set_select_range(start, end):
+    global select
+    select = (start, end)
+
+
+@eel.expose
+def cut_values():
+    global values
+    global select
+    values = values[select[0]: select[1]]
 
 
 if __name__ == '__main__':
