@@ -72,13 +72,13 @@ var selectPlugin = {
     afterEvent: (chart, evt) => {
 
         if (drag && evt.type === 'mousemove') {
-
-
             if (evt.x > selectRange.x2) {
                 selectRange.x2 = evt.x
             }
-            if (evt.x < selectRange.x1) {
+            else if (evt.x < selectRange.x1) {
                 selectRange.x1 = evt.x
+            } else if (evt.x < selectRange.x2){
+                selectRange.x2 = evt.x
             }
             overlay_ctx.fillStyle = select_color
             overlay_ctx.fillRect(selectRange.x1, 0, selectRange.x2 - selectRange.x1, ctx.canvas.clientHeight);
