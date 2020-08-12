@@ -26,8 +26,15 @@ select = (0, 0)
 chart_is_open = False
 current_chart_filename = ''
 
+
 @eel.expose
 def start():
+    try:
+        r = requests.get('http://' + SENSOR_IP + '/start/', timeout=2)
+        if r.status_code != 200:
+            return
+    except:
+        pyautogui.alert("Не удалось подключиться к устройству", "Ошибка")
     global state
     state = 'start'
     eel.cl()
@@ -39,18 +46,24 @@ def start():
 
 @eel.expose
 def stop():
+    try:
+        r = requests.get('http://' + SENSOR_IP + '/stop/', timeout=2)
+    except:
+        pyautogui.alert("Не удалось остановить измерение на устройстве", "Ошибка")
     global state
     state = 'stop'
     if len(values) > 0:
         filename = '{d}.{m}.{Y}; {h}_{min}_{sec}.vlsp'.format(**reformat_datetime())
         save_chart(BACKUP_CHARTS_DIR + filename)
-        backup_charts = [BACKUP_CHARTS_DIR + '\\' + f for f in listdir(BACKUP_CHARTS_DIR) if isfile(join(BACKUP_CHARTS_DIR, f))]
+        backup_charts = [BACKUP_CHARTS_DIR + '\\' + f for f in listdir(BACKUP_CHARTS_DIR) if
+                         isfile(join(BACKUP_CHARTS_DIR, f))]
         while len(backup_charts) > 20:
             os.remove(backup_charts.pop(0))
 
 
 def add_zero(val):
     return '0' + str(val)
+
 
 def reformat_datetime():
     if (day := datetime.now().day) < 10:
@@ -63,7 +76,8 @@ def reformat_datetime():
         minute = add_zero(minute)
     if (sec := datetime.now().second) < 10:
         sec = add_zero(sec)
-    return {'d': day, 'm': month, 'Y': datetime.now().year, 'y': datetime.now().year - 2000, 'h': hour, 'min': minute, 'sec': sec}
+    return {'d': day, 'm': month, 'Y': datetime.now().year, 'y': datetime.now().year - 2000, 'h': hour, 'min': minute,
+            'sec': sec}
 
 
 @eel.expose
@@ -97,7 +111,8 @@ def save_chart_dialog(template):
     style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
     if chart_is_open:
         global current_chart_filename
-        dialog = wx.FileDialog(None, 'Сохранить график', defaultFile=current_chart_filename, wildcard='VLSP files (*.vlsp)|*.vlsp',
+        dialog = wx.FileDialog(None, 'Сохранить график', defaultFile=current_chart_filename,
+                               wildcard='VLSP files (*.vlsp)|*.vlsp',
                                style=style)
     else:
         dialog = wx.FileDialog(None, 'Сохранить график', defaultFile=filename, wildcard='VLSP files (*.vlsp)|*.vlsp',
@@ -132,6 +147,8 @@ def open_chart():
                     name, value = line.strip().split('=')
                     if name == 'm_offset':
                         eel.set_moffset(value)
+                        global m_offset
+                        m_offset = float(value)
                     continue
                 except:
                     eel.set_moffset('None')
@@ -183,7 +200,6 @@ def start_from_zero(value):
         pass
 
 
-
 @eel.expose
 def set_select_range(start, end):
     global select
@@ -217,19 +233,21 @@ if __name__ == '__main__':
         if state == 'start':
             try:
                 r = requests.get('http://' + SENSOR_IP + '/get-load/', timeout=0.4)
-                t, m = r.text.split(':')
-                mult = settings.get('load_multiply', 1)
-                m = float(m) * mult / 1000
-                if len(values) == 0:
-                    start_time = int(t)
-                    eel.set_moffset(str(round(m, 3)))
-                    if settings.get('start_from_zero', False):
-                        m_offset = m
-                    else:
-                        m_offset = 0
-                time_s = round((int(t) - start_time) / 1000, 2)
-                values.append((f'{time_s}s', m - m_offset))
-                eel.addData(values[-1][0], values[-1][1])
+                lines = r.text.split('\n')
+                for line in lines:
+                    t, m = line.split(':')
+                    mult = settings.get('load_multiply', 1)
+                    m = float(m) * mult / 1000
+                    if len(values) == 0:
+                        start_time = int(t)
+                        eel.set_moffset(str(round(m, 3)))
+                        if settings.get('start_from_zero', False):
+                            m_offset = m
+                        else:
+                            m_offset = 0
+                    time_s = round((int(t) - start_time) / 1000, 2)
+                    values.append((f'{time_s}s', m - m_offset))
+                    eel.addData(values[-1][0], values[-1][1])
                 eel.updateChart(500)
             except:
                 eel.error('Нет ответа')
