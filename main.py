@@ -9,6 +9,7 @@ import pyautogui
 import requests
 from os import listdir
 from os.path import isfile, join
+import sys
 
 state = 'stop'
 values = []
@@ -21,36 +22,49 @@ SETTINGS_PATH = APPDATA_PATH + 'settings.vsst'
 SENSOR_IP = "192.168.43.50"
 
 start_time = 0
-m_offset = 0
+first_value = 0
 select = (0, 0)
 chart_is_open = False
 current_chart_filename = ''
 
+
 @eel.expose
 def start():
-    global state
-    state = 'start'
-    eel.cl()
-    global values
-    global chart_is_open
-    chart_is_open = False
-    values = []
+    try:
+        r = requests.get('http://' + SENSOR_IP + '/start/', timeout=1)
+        global state
+        state = 'start'
+        eel.cl()
+        global values
+        global chart_is_open
+        chart_is_open = False
+        values = []
+        return True
+    except:
+        print(sys.exc_info())
+        return False
 
 
 @eel.expose
 def stop():
-    global state
-    state = 'stop'
-    if len(values) > 0:
-        filename = '{d}.{m}.{Y}; {h}_{min}_{sec}.vlsp'.format(**reformat_datetime())
-        save_chart(BACKUP_CHARTS_DIR + filename)
-        backup_charts = [BACKUP_CHARTS_DIR + '\\' + f for f in listdir(BACKUP_CHARTS_DIR) if isfile(join(BACKUP_CHARTS_DIR, f))]
-        while len(backup_charts) > 20:
-            os.remove(backup_charts.pop(0))
+    is_stoped = get_values(stop_measure=True)
+    if is_stoped:
+        global state
+        state = 'stop'
+        if len(values) > 0:
+            filename = '{d}.{m}.{Y}; {h}_{min}_{sec}.vlsp'.format(**reformat_datetime())
+            save_chart(BACKUP_CHARTS_DIR + filename)
+            backup_charts = [BACKUP_CHARTS_DIR + '\\' + f for f in listdir(BACKUP_CHARTS_DIR) if
+                             isfile(join(BACKUP_CHARTS_DIR, f))]
+            while len(backup_charts) > 20:
+                os.remove(backup_charts.pop(0))
+        return True
+    return False
 
 
 def add_zero(val):
     return '0' + str(val)
+
 
 def reformat_datetime():
     if (day := datetime.now().day) < 10:
@@ -63,7 +77,8 @@ def reformat_datetime():
         minute = add_zero(minute)
     if (sec := datetime.now().second) < 10:
         sec = add_zero(sec)
-    return {'d': day, 'm': month, 'Y': datetime.now().year, 'y': datetime.now().year - 2000, 'h': hour, 'min': minute, 'sec': sec}
+    return {'d': day, 'm': month, 'Y': datetime.now().year, 'y': datetime.now().year - 2000, 'h': hour, 'min': minute,
+            'sec': sec}
 
 
 @eel.expose
@@ -79,7 +94,7 @@ def save_chart(path):
     if not os.path.exists(dr):
         os.makedirs(dr)
     with open(path, 'w') as f:
-        print(f'm_offset={round(m_offset, 3)}', file=f)
+        print(f'm_offset={round(first_value, 3)}', file=f)
         for x, y in values:
             print(x, y, file=f, sep=':')
 
@@ -97,7 +112,8 @@ def save_chart_dialog(template):
     style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
     if chart_is_open:
         global current_chart_filename
-        dialog = wx.FileDialog(None, 'Сохранить график', defaultFile=current_chart_filename, wildcard='VLSP files (*.vlsp)|*.vlsp',
+        dialog = wx.FileDialog(None, 'Сохранить график', defaultFile=current_chart_filename,
+                               wildcard='VLSP files (*.vlsp)|*.vlsp',
                                style=style)
     else:
         dialog = wx.FileDialog(None, 'Сохранить график', defaultFile=filename, wildcard='VLSP files (*.vlsp)|*.vlsp',
@@ -174,6 +190,16 @@ def set_multiply(multiply):
 
 
 @eel.expose
+def set_offset(offset):
+    global settings
+    try:
+        settings['offset'] = float(offset)
+        save_settings()
+    except:
+        pass
+
+
+@eel.expose
 def start_from_zero(value):
     global settings
     try:
@@ -181,7 +207,6 @@ def start_from_zero(value):
         save_settings()
     except:
         pass
-
 
 
 @eel.expose
@@ -197,6 +222,40 @@ def cut_values():
     values = values[select[0]: select[1]]
 
 
+def get_values(stop_measure=False):
+    try:
+        global start_time
+        global first_value
+        if stop_measure:
+            r = requests.get('http://' + SENSOR_IP + '/stop/', timeout=1)
+        else:
+            r = requests.get('http://' + SENSOR_IP + '/get-load/', timeout=1)
+        lines = r.text[:-1].split('\n')
+        for line in lines:
+            if not ':' in line:
+                break
+            t, m = line.split(':')
+            mult = settings.get('load_multiply', 1)
+            offset = settings.get('offset', 0)
+            m = (float(m)/1000 - offset/mult) * mult
+            if len(values) == 0:
+                start_time = int(t)
+                eel.set_first_value(str(round(m, 3)))
+                if settings.get('start_from_zero', False):
+                    first_value = m
+                else:
+                    first_value = 0
+            time_s = round((int(t) - start_time) / 1000, 2)
+            values.append((f'{time_s}s', m - first_value))
+            eel.addData(values[-1][0], values[-1][1])
+            eel.updateChart(500)
+        return True
+    except:
+        print(sys.exc_info())
+        eel.error('Нет ответа')
+        return False
+
+
 if __name__ == '__main__':
     load_settings()
 
@@ -204,36 +263,17 @@ if __name__ == '__main__':
     eel.init('web')
 
     try:
-        eel.start('main.html', mode='chrome', block=False)
+        eel.start('main.html', block=False)
     except:
         pyautogui.alert("Для работы приложения необходим браузер Chrome", "Ошибка")
         sys.exit()
 
     eel.set_chart_template(settings.get('chart_name_temp', ''))
     eel.set_multiply(settings.get('load_multiply', 1))
+    eel.set_offset(settings.get('offset', 0))
     eel.set_start_zero(settings.get('start_from_zero', False))
 
     while True:
         if state == 'start':
-            try:
-                r = requests.get('http://' + SENSOR_IP + '/get-load/', timeout=0.4)
-                t, m = r.text.split(':')
-                mult = settings.get('load_multiply', 1)
-                m = float(m) * mult / 1000
-                if len(values) == 0:
-                    start_time = int(t)
-                    eel.set_moffset(str(round(m, 3)))
-                    if settings.get('start_from_zero', False):
-                        m_offset = m
-                    else:
-                        m_offset = 0
-                time_s = round((int(t) - start_time) / 1000, 2)
-                values.append((f'{time_s}s', m - m_offset))
-                eel.addData(values[-1][0], values[-1][1])
-                eel.updateChart(500)
-            except:
-                eel.error('Нет ответа')
-        eel.sleep(0.01)
-
-""" assoc .vlsp=VolnSopr
-    ftype VolnSopr=perl.exe %1 %* """
+            get_values()
+        eel.sleep(0.2)

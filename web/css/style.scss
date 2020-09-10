@@ -60,8 +60,8 @@ input {
     margin-top: 13px;
     width: calc(100% - 230px);
   }
-  &#multiply{
-    margin-left: 75px;
+  &#multiply, &#offset{
+    margin-left: 10px;
     width: 50px;
   }
 }
@@ -73,8 +73,10 @@ label[for=template] {
   font-size: 15px;
 }
 
-label[for=multiply] {
-  position: absolute;
+label.left {
+  margin-top: 2px;
+  float: left;
+  display: block;
   top: 2px;
   left: 0;
   font-size: 16px;

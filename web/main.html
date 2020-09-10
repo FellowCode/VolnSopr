@@ -36,6 +36,9 @@
             $('#multiply').change(function () {
                 eel.set_multiply($(this).val())
             })
+            $('#offset').change(function () {
+                eel.set_offset($(this).val())
+            })
             $('#start_zero').change(function () {
                 eel.start_from_zero(this.checked)
             })
@@ -152,17 +155,23 @@
             myChart.update();
         }
 
-        function clickStartStop() {
+        async function clickStartStop() {
             if (state === 'stop') {
-                eel.start()
-                state = 'start'
-                $state_btn.text('Стоп')
-                $('#chart-name-row').addClass('hide')
-                cl()
+                let b = await eel.start()()
+                console.log(b)
+                if (b) {
+                    state = 'start'
+                    $state_btn.text('Стоп')
+                    $('#chart-name-row').addClass('hide')
+                    cl()
+                }
             } else {
-                eel.stop()
-                state = 'stop'
-                $state_btn.text('Старт')
+                let b = await eel.stop()()
+                console.log(b)
+                if (b) {
+                    state = 'stop'
+                    $state_btn.text('Старт')
+                }
             }
         }
 
@@ -214,16 +223,22 @@
             $('#multiply').val(mult)
         }
 
+        eel.expose(set_offset)
+
+        function set_offset(offset) {
+            $('#offset').val(offset)
+        }
+
         eel.expose(set_start_zero)
 
         function set_start_zero(value) {
             $('#start_zero').prop('checked', value)
         }
 
-        eel.expose(set_moffset)
+        eel.expose(set_first_value)
 
-        function set_moffset(m_offset) {
-            $('#m_offset').text(m_offset)
+        function set_first_value(first_value) {
+            $('#first_value').text(first_value)
         }
 
         function cutChart() {
@@ -268,15 +283,21 @@
     <input id="template" type="text">
 </div>
 <div class="row">
-    <label for="multiply" class="cfont">Множитель</label>
-    <input id="multiply" type="text">
+    <div class="col">
+        <label for="multiply" class="cfont left">Множитель</label>
+        <input id="multiply" type="text">
+    </div>
+    <div class="col">
+        <label for="offset" class="cfont left">Смещение</label>
+        <input id="offset" type="text">
+    </div>
     <div class="col">
         <label for="start_zero" class="cfont">Обнулять старт</label>
         <input id="start_zero" type="checkbox">
     </div>
     <div class="col cfont">
         <span>Натяжение троса: </span>
-        <span id="m_offset">None</span>
+        <span id="first_value">None</span>
     </div>
     <a id="cut-select" class="btn right cfont" style="display:none;" onclick="cutChart()">Обрезать</a>
     <a id="cancel-select" class="btn right cfont" style="width: 200px; display: none" onclick="cancelSelect()">Отмена

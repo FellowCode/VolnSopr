@@ -45,8 +45,8 @@ input {
     margin-left: 10px;
     margin-top: 13px;
     width: calc(100% - 230px); }
-  input#multiply {
-    margin-left: 75px;
+  input#multiply, input#offset {
+    margin-left: 10px;
     width: 50px; }
 
 label[for=template] {
@@ -55,8 +55,10 @@ label[for=template] {
   left: 223px;
   font-size: 15px; }
 
-label[for=multiply] {
-  position: absolute;
+label.left {
+  margin-top: 2px;
+  float: left;
+  display: block;
   top: 2px;
   left: 0;
   font-size: 16px; }
