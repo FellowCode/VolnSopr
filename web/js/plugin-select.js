@@ -115,10 +115,9 @@ var selectPlugin = {
                 }
                 overlay_ctx.clearRect(0, 0, overlay.width, overlay.height);
                 overlay_ctx.fillStyle = select_color
-                overlay_ctx.fillRect(start.x - 2, 0, end.x - start.x, ctx.canvas.clientHeight);
+                if (start.x !== null && end.x !== null)
+                    overlay_ctx.fillRect(start.x - 2, 0, end.x - start.x, ctx.canvas.clientHeight);
                 select.selectCallback(start, end);
-
-
             }
         }
     }

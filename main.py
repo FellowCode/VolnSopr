@@ -146,16 +146,15 @@ def open_chart():
             if i == 0:
                 try:
                     name, value = line.strip().split('=')
-                    if name == 'm_offset':
-                        eel.set_moffset(value)
-                    continue
                 except:
-                    eel.set_moffset('None')
+                    eel.set_offset('None')
+                if name == 'm_offset':
+                    eel.set_offset(value)
+                continue
             x, y = line.strip().split(':')
             values.append((x, y))
             eel.addData(values[-1][0], values[-1][1])
         eel.updateChart(0)
-
     filename = '.'.join(path.split('\\')[-1].split('.')[:-1])
     eel.chart_opened(filename)
 
@@ -223,37 +222,38 @@ def cut_values():
 
 
 def get_values(stop_measure=False):
+    global start_time
+    global first_value
     try:
-        global start_time
-        global first_value
         if stop_measure:
             r = requests.get('http://' + SENSOR_IP + '/stop/', timeout=1)
         else:
             r = requests.get('http://' + SENSOR_IP + '/get-load/', timeout=1)
-        lines = r.text[:-1].split('\n')
-        for line in lines:
-            if not ':' in line:
-                break
-            t, m = line.split(':')
-            mult = settings.get('load_multiply', 1)
-            offset = settings.get('offset', 0)
-            m = (float(m)/1000 - offset/mult) * mult
-            if len(values) == 0:
-                start_time = int(t)
-                eel.set_first_value(str(round(m, 3)))
-                if settings.get('start_from_zero', False):
-                    first_value = m
-                else:
-                    first_value = 0
-            time_s = round((int(t) - start_time) / 1000, 2)
-            values.append((f'{time_s}s', m - first_value))
-            eel.addData(values[-1][0], values[-1][1])
-            eel.updateChart(500)
-        return True
     except:
         print(sys.exc_info())
         eel.error('Нет ответа')
         return False
+
+    lines = r.text[:-1].split('\n')
+    for line in lines:
+        if not ':' in line:
+            break
+        t, m = line.split(':')
+        mult = settings.get('load_multiply', 1)
+        offset = settings.get('offset', 0)
+        m = (float(m)/1000 - offset/mult) * mult
+        if len(values) == 0:
+            start_time = int(t)
+            eel.set_first_value(str(round(m, 3)))
+            if settings.get('start_from_zero', False):
+                first_value = m
+            else:
+                first_value = 0
+        time_s = round((int(t) - start_time) / 1000, 2)
+        values.append((f'{time_s}s', m - first_value))
+        eel.addData(values[-1][0], values[-1][1])
+    eel.updateChart(500)
+    return True
 
 
 if __name__ == '__main__':

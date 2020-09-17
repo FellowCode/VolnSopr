@@ -13,12 +13,14 @@
     <script type="text/javascript" src="js/peak-values-plugin.js"></script>
 
     <script>
+        let average = (array) => array.reduce((a, b) => a + b) / array.length;
         var ctx
         var $chartCanvas
         var myChart
         var $state_btn
         var $cur_value
         var $overlay
+        var $average
         var original_data = {'labels': [], 'datas': []}
         window.addEventListener('resize', function () {
             $chartCanvas.height($(window).height() - 180);
@@ -29,6 +31,7 @@
         $(document).ready(function () {
             $chartCanvas = $('#myChart')
             $overlay = document.getElementById('overlay')
+            $average = $('#average-value')
             $($overlay).width($chartCanvas.width())
             $($overlay).prop('width', $chartCanvas.width())
             $state_btn = $('#state-btn')
@@ -105,8 +108,9 @@
                         selectCallback: (startPoint, endPoint) => {
                             myChart.data.labels = myChart.data.labels.slice(startPoint.idx, endPoint.idx)
                             myChart.data.datasets[0].data = myChart.data.datasets[0].data.slice(startPoint.idx, endPoint.idx)
+                            set_average()
                             myChart.update(0)
-                            $overlay.getContext('2d').clearRect(0, 0, $overlay.width, $overlay.height);
+                            $overlay.getContext('2d').clearRect(0, 0, $overlay.width, $overlay.height)
                             $('#cancel-select').show()
                             $('#cut-select').show()
                             eel.set_select_range(startPoint.idx, endPoint.idx)
@@ -142,8 +146,9 @@
 
         function addData(label, data) {
             label = parseFloat(label.replace('s', ''))
+            data = parseFloat(data)
             myChart.data.labels.push(label);
-            myChart.data.datasets[0].data.push(parseFloat(data));
+            myChart.data.datasets[0].data.push(data);
             original_data.labels.push(label)
             original_data.datas.push(data)
             $cur_value.text(data)
@@ -152,7 +157,8 @@
         eel.expose(updateChart)
 
         function updateChart(duration) {
-            myChart.update();
+            set_average()
+            myChart.update()
         }
 
         async function clickStartStop() {
@@ -194,6 +200,7 @@
         function chart_opened(name) {
             $('#chart-name-row').removeClass('hide')
             $('#chart-name').text(name)
+            set_average()
             myChart.update(0)
         }
 
@@ -252,9 +259,21 @@
         function cancelSelect() {
             myChart.data.labels = original_data.labels
             myChart.data.datasets[0].data = original_data.datas
+            set_average()
             myChart.update(0)
             $('#cancel-select').hide()
             $('#cut-select').hide()
+        }
+
+        function set_average(){
+            if (myChart.data.datasets[0].data.length > 0) {
+                console.log(myChart.data.datasets[0].data)
+                var aver = average(myChart.data.datasets[0].data)
+                aver = Math.round(aver * 1000) / 1000
+                $average.text(aver)
+            } else {
+                $average.text('None')
+            }
         }
     </script>
 </head>
@@ -271,6 +290,10 @@
     <div class="cur-value cfont">
         <span>Текущее значение:</span>
         <span id="cur-value">None</span>
+    </div>
+    <div class="cur-value cfont">
+        <span>Среднее значение:</span>
+        <span id="average-value">None</span>
     </div>
     <a id="reset-btn" class="btn right cfont" onclick="cl()">
         Очистить
